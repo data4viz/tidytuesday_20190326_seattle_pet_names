@@ -1,0 +1,142 @@
+---
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+
+
+```{r Packages}
+
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+
+```
+
+
+```{r Data Import}
+
+
+seattle_pets <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-03-26/seattle_pets.csv") %>% 
+  mutate(license_issue_date = lubridate::mdy(license_issue_date), #parsing to proper date format
+         pet_id = paste0("ID",row_number())) #creating unique ID for every pet
+
+```
+
+
+```{r Splitting breed columns}
+
+
+breeds <- seattle_pets %>% 
+  select(pet_id, species, primary_breed, secondary_breed) %>%
+  gather(key = breed_type, value = breed_name, -pet_id, -species) %>% 
+  separate_rows(breed_name, sep = ",") %>% 
+  mutate(breed_name = str_squish(breed_name)) %>%  #removing empty spaces in breed names
+  filter(!is.na(breed_name)) #filter out with no breed values
+  
+```
+
+
+```{r Pure breed pets}
+
+#calculates number of breed names for each licence number. for filterting pure and mixed breed animals.   
+number_breeds <-  breeds %>%
+count(pet_id, sort = TRUE) 
+  
+#creating a dataset with only pure breed animals
+pure_breed_pets <- number_breeds %>% 
+  filter(n == 1) %>% 
+  left_join(seattle_pets, by = "pet_id") %>% #joining with the main dataset 
+  select(-n)
+
+#cats of pure breed
+pure_cats <- pure_breed_pets %>% 
+  filter(species == "Cat")
+  
+#the most common cat breeds
+pure_cats %>%
+  count(primary_breed, sort = TRUE) %>%
+  mutate(primary_breed = fct_reorder(primary_breed, n)) %>%
+  top_n(primary_breed, n = 20) %>% 
+  ggplot(aes(x = primary_breed, y = n)) +
+  geom_col() +
+  coord_flip() +
+  theme_bw()
+
+
+#filtering out not pure breeds
+filter_out_cats <- c("Domestic Shorthair", "Domestic Medium Hair", "Mix", "Domestic Longhair") 
+`%not_in%` <- purrr::negate(`%in%`) #creating a "not in" operator
+
+
+#total number of cats in the entire dataset
+total_cats <- as.integer( 
+  seattle_pets %>%
+  filter(species == "Cat") %>% 
+  count() )
+
+#total number of pedigree cats
+total_pedigree_cats <- as.integer(
+  pure_cats %>%
+  count(primary_breed, sort = TRUE) %>%
+  filter(primary_breed %not_in% filter_out_cats) %>% 
+  summarise(sum(n)))
+  
+
+top10_cats <- 
+pure_cats %>%
+  count(primary_breed, sort = TRUE) %>%
+  filter(primary_breed %not_in% filter_out_cats) %>% #using "not in" operator
+  mutate(primary_breed = fct_reorder(primary_breed, n)) %>%
+  top_n(primary_breed, n = 10) %>% 
+  mutate(from_pedigree = scales::percent(n/total_pedigree_cats, accuracy = 0.1),
+        from_all_cats = scales::percent(n/total_cats, accuracy = 0.1))
+
+
+
+
+top10_cats %>% 
+  ggplot(aes(x = primary_breed, y = n)) +
+  geom_col() +
+  coord_flip() +
+  theme_bw()
+  
+```
+
+
+
+```{r}
+
+cat_table <-
+top10_cats %>% 
+  rename(Breed = primary_breed,
+         Cats = n,
+         'From Pedigree Cats' = from_pedigree,
+         'From All Cats' = from_all_cats)
+
+
+cat_table %>% 
+  kableExtra::kable(caption = "The 10 most common pedigree cats in Seattle") %>% 
+  kable_styling(bootstrap_options = c("hover","condensed"), full_width = FALSE, position = "left") %>%
+  column_spec(column = 1, width = "10em") %>% 
+  column_spec(column = 2, width = "6em") %>% 
+  column_spec(column = 3, width = "6em") %>%
+  column_spec(column = 4, width = "6em") %>%
+  row_spec(0, color = "black") %>% 
+  row_spec(6, color = "blue")
+
+
+
+```
+
+
+```{r}
+
+seattle_pets %>% 
+  filter(animals_name %in% c("Alexa"))
+
+
+
+```
+
