@@ -104,15 +104,19 @@ pure_cats %>%
   mutate(from_pedigree = scales::percent(n/total_pedigree_cats, accuracy = 0.1),
         from_all_cats = scales::percent(n/total_cats, accuracy = 0.1))
 
+  
+```
 
 
+```{r}
 
 top10_cats %>% 
   ggplot(aes(x = primary_breed, y = n)) +
   geom_col() +
   coord_flip() +
   theme_bw()
-  
+
+
 ```
 
 

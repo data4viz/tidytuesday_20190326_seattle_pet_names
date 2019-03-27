@@ -261,12 +261,8 @@ pure_cats %&gt;%
   mutate(primary_breed = fct_reorder(primary_breed, n)) %&gt;%
   top_n(primary_breed, n = 10) %&gt;% 
   mutate(from_pedigree = scales::percent(n/total_pedigree_cats, accuracy = 0.1),
-        from_all_cats = scales::percent(n/total_cats, accuracy = 0.1))
-
-
-
-
-top10_cats %&gt;% 
+        from_all_cats = scales::percent(n/total_cats, accuracy = 0.1))</code></pre>
+<pre class="r"><code>top10_cats %&gt;% 
   ggplot(aes(x = primary_breed, y = n)) +
   geom_col() +
   coord_flip() +

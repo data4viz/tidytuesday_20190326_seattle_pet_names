@@ -101,10 +101,11 @@ pure_cats %>%
   top_n(primary_breed, n = 10) %>% 
   mutate(from_pedigree = scales::percent(n/total_pedigree_cats, accuracy = 0.1),
         from_all_cats = scales::percent(n/total_cats, accuracy = 0.1))
+```
 
 
 
-
+```r
 top10_cats %>% 
   ggplot(aes(x = primary_breed, y = n)) +
   geom_col() +
@@ -112,7 +113,7 @@ top10_cats %>%
   theme_bw()
 ```
 
-![](seattle_pets_files/figure-html/Pure breed pets-2.png)<!-- -->
+![](seattle_pets_files/figure-html/unnamed-chunk-1-1.png)<!-- -->
 
 
 
