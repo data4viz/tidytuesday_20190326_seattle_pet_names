@@ -9,9 +9,6 @@ output:
 ---
 
 
-
-Loading packages
-
 ```{r Packages, message=FALSE, warning=FALSE}
 
 library(tidyverse)
