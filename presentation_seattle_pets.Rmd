@@ -1,0 +1,101 @@
+---
+title: "Pets in Seattle"
+author: '@data4viz'
+date: "27 märts 2019"
+output: ioslides_presentation
+
+
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+
+library(tidyverse)
+
+
+seattle_pets <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-03-26/seattle_pets.csv") %>% 
+  mutate(license_issue_date = lubridate::mdy(license_issue_date), #parsing to proper date format
+         pet_id = paste0("ID",row_number())) #creating unique ID for every pet
+
+
+count(seattle_pets)
+
+summary_pets <- 
+seattle_pets %>% 
+  count(species, sort = TRUE) %>%
+  mutate(proportion = n/sum(n),
+         compared_to_dogs = n[species == "Dog"]/n)
+
+name_length <-
+seattle_pets %>% 
+  select(animals_name, species) %>% 
+  mutate(name_length =   nchar(animals_name)) %>% 
+  arrange(-name_length)
+
+
+
+
+
+```
+
+
+
+
+## Dataset
+
+There are in total  **`r scales::number(as.integer(count(seattle_pets)))`** records. For every cat there are roughly 
+**`r round(summary_pets[2,4],1)`** dogs.
+
+
+
+```{r}
+  
+
+summary_pets %>%
+  mutate(species = fct_reorder(species, -n)) %>% 
+  ggplot(aes(x = species, y = n)) +
+  geom_col(fill = "RoyalBlue") +
+  geom_label(aes(label = scales::number(n))) +
+  theme_minimal() +
+  theme(axis.title = element_blank(),
+        axis.text.y = element_blank())
+
+```
+
+
+
+
+## Some names are rather long...
+
+
+```{r}
+
+name_length %>%
+  arrange(-name_length) %>% 
+  mutate(rank = row_number(),
+         animals_name = fct_reorder(animals_name, -rank)) %>% 
+  top_n(name_length, n = 5) %>% 
+  select(-rank) %>% 
+  rename(Name = animals_name, Species = species, 'Characters' = name_length) %>% 
+  knitr::kable()
+
+
+```
+
+
+## while some are not
+
+```{r}
+
+name_length %>%
+  arrange(name_length) %>% 
+  mutate(rank = row_number(),
+        animals_name = fct_reorder(animals_name, -rank)) %>% 
+ head(5) %>% 
+  select(-rank, -name_length) %>% 
+  rename(Name = animals_name, Species = species) %>% 
+  knitr::kable()
+
+```
+
