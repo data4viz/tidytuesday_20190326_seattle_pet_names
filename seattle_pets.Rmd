@@ -1,12 +1,16 @@
 ---
-output: html_document
-editor_options: 
-  chunk_output_type: console
+title: "Pet names in Seattle"
+author: "@data4viz"
+output: 
+  html_document:
+    keep_md: TRUE      
 ---
 
 
 
-```{r Packages}
+Loading packages
+
+```{r Packages, message=FALSE, warning=FALSE}
 
 library(tidyverse)
 library(knitr)
@@ -15,7 +19,9 @@ library(kableExtra)
 ```
 
 
-```{r Data Import}
+Importing data and doing some basic data cleaning
+
+```{r Data Import, message=FALSE, warning=FALSE}
 
 
 seattle_pets <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-03-26/seattle_pets.csv") %>% 
@@ -25,12 +31,15 @@ seattle_pets <- readr::read_csv("https://raw.githubusercontent.com/rfordatascien
 ```
 
 
+Creating a seperate dataset for all the breed names that are chosen
+
+
 ```{r Splitting breed columns}
 
 
 breeds <- seattle_pets %>% 
   select(pet_id, species, primary_breed, secondary_breed) %>%
-  gather(key = breed_type, value = breed_name, -pet_id, -species) %>% 
+  gather(key = breed_type, value = breed_name, -pet_id, -species) %>%  
   separate_rows(breed_name, sep = ",") %>% 
   mutate(breed_name = str_squish(breed_name)) %>%  #removing empty spaces in breed names
   filter(!is.na(breed_name)) #filter out with no breed values
@@ -106,7 +115,7 @@ top10_cats %>%
 
 
 
-```{r}
+```{r Making a table}
 
 cat_table <-
 top10_cats %>% 
